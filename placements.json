@@ -1,0 +1,29 @@
+{
+  "area0": {
+    "type": "image",
+    "path": "image.png",
+
+    "xy": [0, 0],
+    "wh": [0, 0],
+
+    "colour": [0, 0, 0],
+    "opacity": 0,
+    "rotation": 0
+  },
+
+  "area1": {
+    "type": "text",
+    "path": "bahnschrift.ttf",
+
+    "xy": [0, 0],
+    "wh": [0, 0],
+    
+    "font_colour": [0, 0, 0],
+    "font_size": 12,
+    "font_variant": "SemiBold Condensed",
+
+    "colour": [0, 0, 0],
+    "opacity": 0,
+    "rotation": 0
+  }
+}

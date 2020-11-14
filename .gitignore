@@ -1,0 +1,7 @@
+# Autogen
+.venv/
+.vscode/
+__pycache__/
+
+# Custom
+testers/
