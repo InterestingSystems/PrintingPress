@@ -6,8 +6,9 @@
     "xy": [0, 0],
     "wh": [0, 0],
 
-    "colour": [0, 0, 0],
-    "opacity": 0,
+    "bg_colour": [0, 0, 0],
+    "bg_opacity": 0,
+
     "rotation": 0
   },
 
@@ -21,9 +22,11 @@
     "font_colour": [0, 0, 0],
     "font_size": 12,
     "font_variant": "SemiBold Condensed",
+    "font_opacity": 0,
 
-    "colour": [0, 0, 0],
-    "opacity": 0,
+    "bg_colour": [0, 0, 0],
+    "bg_opacity": 0,
+
     "rotation": 0
   }
 }
