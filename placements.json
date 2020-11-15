@@ -3,18 +3,20 @@
     "type": "image",
     "path": "image.png",
 
+    "filter": "gaussian_blur",
+    "filter_data": [],
+
     "xy": [0, 0],
-    "wh": [0, 0],
+    "wh": [100, 100],
 
-    "bg_colour": [0, 0, 0],
-    "bg_opacity": 0,
-
+    "opacity": 100,
     "rotation": 0
   },
 
   "area1": {
     "type": "text",
     "path": "bahnschrift.ttf",
+    "text": "Hello World",
 
     "xy": [0, 0],
     "wh": [0, 0],
