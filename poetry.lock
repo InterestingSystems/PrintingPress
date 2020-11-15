@@ -1,8 +1,17 @@
-package = []
+[[package]]
+name = "pillow-simd"
+version = "7.0.0.post3"
+description = "Python Imaging Library (Fork)"
+category = "main"
+optional = false
+python-versions = ">=3.5"
 
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.6"
-content-hash = "ae1f216c71b9b712a5c479d19bf075b718c35d9248fd89cb1eb7624528ec5ad1"
+content-hash = "a9af47ef1b8c0181549b63a32f0cb2066552debedbca431df40d5605ff1cb75d"
 
 [metadata.files]
+pillow-simd = [
+    {file = "Pillow-SIMD-7.0.0.post3.tar.gz", hash = "sha256:c27907af0e7ede1ceed281719e722e7dbf3e1dbfe561373978654a6b64896cb7"},
+]

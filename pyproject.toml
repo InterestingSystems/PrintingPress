@@ -6,6 +6,7 @@ authors = ["hysrx"]
 
 [tool.poetry.dependencies]
 python = "^3.6"
+Pillow-SIMD = "7.0.0post3"
 
 [tool.poetry.dev-dependencies]
 
