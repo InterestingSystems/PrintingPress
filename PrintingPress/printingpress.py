@@ -159,12 +159,12 @@ class Placements:
                 assert parsed_area['path'].is_file(), f'Area {area_name}: key path has to be an existant file'  # noqa: E501
 
                 # Create PIL Font Object
-                font = ImageFont.FreeTypeFont(font=parsed_area['path'],
+                font = ImageFont.FreeTypeFont(font=str(parsed_area['path']),
                                               size=parsed_area['font_size'])
 
                 # Retrieve font_variant key value
                 font_variant = Internals.retrieve_key(target=parsed_area, key='font_variant',
-                                                      expected=str, fallback=None)
+                                                      expected=(str, type(None)), fallback=None)
 
                 # Attempt to set font_variant
                 if font_variant is not None:
@@ -176,7 +176,7 @@ class Placements:
                 # Add font into parsed_area
                 parsed_area['font'] = font
 
-                Placements.__textarea__(**parsed_area)  # Create namedtuple
+                parsed_places[area_name] = Placements.__textarea__(**parsed_area)  # Create namedtuple
 
             else:  # Image-specific post-parse operations
                 if isinstance(parsed_area['path'], Image.Image):
@@ -248,10 +248,14 @@ def operate(image: Image.Image, placements: dict, suppress: bool = False) -> Ima
         return current()
 
     assert isinstance(image, Image.Image), 'Passed image parameter is not a PIL Image'
+
+    if 'A' not in image.mode:
+        image = image.convert('RGBA')
+
     suppress = not suppress  # negate for condition in Internals.print_if
 
     for area_name, area_data in placements.items():
-        Internals.print_if(f'Operating on area {area_name}. ({area_data.type})',
+        Internals.print_if(f'\nOperating on area {area_name}. ({area_data.type})',
                            condition=suppress)
 
         if area_data.type == 'text':  # Text-based operation
@@ -259,7 +263,7 @@ def operate(image: Image.Image, placements: dict, suppress: bool = False) -> Ima
             Internals.print_if('  Creating subimage...', end='\r', condition=suppress)
             subimage = Image.new(mode='RGBA',
                                  size=tuple(area_data.wh),
-                                 color=(area_data.bg_opacity,) + tuple(area_data.colour))
+                                 color=(area_data.bg_opacity,) + tuple(area_data.bg_colour))
             Internals.print_if('  Creating subimage... DONE', condition=suppress)
 
             # Make ImageDraw.Draw
@@ -278,9 +282,13 @@ def operate(image: Image.Image, placements: dict, suppress: bool = False) -> Ima
 
             # Draw Text
             Internals.print_if('  Drawing text...', end='\r', condition=suppress)
+
+            fill = area_data.font_colour.copy()
+            fill.append(area_data.font_opacity)
+
             drawer.text(xy=(0, 0),
                         text=text,
-                        fill=tuple(area_data.font_colour.copy().append(area_data.font_opacity)),
+                        fill=tuple(fill),
                         font=area_data.font)
             Internals.print_if('  Drawing text... DONE', condition=suppress)
 
@@ -291,7 +299,13 @@ def operate(image: Image.Image, placements: dict, suppress: bool = False) -> Ima
 
             # Press subimage onto image
             Internals.print_if('  Pressing subimage into image...', end='\r', condition=suppress)
-            image.paste(im=subimage, box=tuple(area_data.xy), mask=subimage)
+
+            # A holder image is neccesary as just pasting, if the subimage is transparent,
+            # image becomes transparent as well.
+            holder = Image.new('RGBA', image.size)
+            holder.paste(im=subimage, box=tuple(area_data.xy), mask=subimage)
+            image = Image.alpha_composite(image, holder)
+
             Internals.print_if('  Pressing subimage into image... DONE', condition=suppress)
 
         else:  # Image-based operation
