@@ -1,15 +1,26 @@
 [tool.poetry]
 name = "PrintingPress"
-version = "1.0.0"
+version = "1.0.0-beta"
 description = "A tool to place text and images onto a Pillow image object."
-authors = ["hysrx"]
+authors = ["hysrx <github@rxyth.co>"]
+license = "MIT"
+readme = "README.md"
+repository = "https://github.com/InterestingSystems/PrintingPress"
+keywords = ["imaging", "Pillow", "PIL", "text", "font"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Python :: Implementation :: PyPy",
+    "Topic :: Scientific/Engineering :: Image Processing",
+    "License :: OSI Approved :: MIT License"
+]
 
 [tool.poetry.dependencies]
 python = "^3.6"
-Pillow-SIMD = "7.0.0post3"
+Pillow-SIMD = "==7.0.0post3"
 
 [tool.poetry.dev-dependencies]
-pytest = "6.1.2"
+pytest = "==6.1.2"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
