@@ -4,9 +4,17 @@ A tool to place text and images onto a Pillow image object.
 
 ## Installation
 
+You can install PrintingPress via PyPI using the following command:
+
 ```bash
 pip3 install isPrintingPress
 ```
+
+### Dependencies
+
+PrintingPress uses Pillow, with the minimum version officially supported being `7.0.0.post3`.
+
+###### Compatibility for Pillow versions under `7.0.0.post3` is not guaranteed, but you are free to try.
 
 ## Usage
 
