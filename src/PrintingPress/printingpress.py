@@ -106,7 +106,7 @@ class Placements:
             'font_opacity': [int, False, 255],
 
             'rotation': [int, False, 0],
-
+            'beneath': [bool, False, False],
             'font': None
         }
     }
@@ -304,7 +304,10 @@ def operate(image: Image.Image, placements: dict, suppress: bool = False) -> Ima
             # image becomes transparent as well.
             holder = Image.new('RGBA', image.size)
             holder.paste(im=subimage, box=tuple(area_data.xy), mask=subimage)
-            image = Image.alpha_composite(image, holder)
+            if area_data.beneath:
+                image = Image.alpha_composite(holder, image)
+            else:
+                image = Image.alpha_composite(image, holder)
 
             Internals.print_if('  Pressing subimage into image... DONE', condition=suppress)
 
@@ -342,8 +345,14 @@ def operate(image: Image.Image, placements: dict, suppress: bool = False) -> Ima
 
             # Paste Image
             Internals.print_if('  Pasting image onto target...', end='\r', condition=suppress)
-            image.paste(im=area_image,
-                        box=tuple(area_data.xy))
+            if area_data.beneath:
+                # A holder is required as the area image needs to be positioned relative
+                # to image's dimensions which is not possible merely a paste.
+                holder = Image.new(mode='RGBA', size=image.size)
+                holder.paste(im=area_image, box=tuple(area_data.xy))
+                image = holder.paste(im=image, box=tuple(area_data.xy))
+            else:
+                image.paste(im=area_image, box=tuple(area_data.xy))
             Internals.print_if('  Pasting image onto target... DONE', condition=suppress)
 
         Internals.print_if('  All operations complete.', condition=suppress)

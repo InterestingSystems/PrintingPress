@@ -7,7 +7,8 @@
     "xy": [0, 0],
     "wh": [0, 0],
     "opacity": 0,
-    "rotation": 0
+    "rotation": 0,
+    "beneath": false
   },
 
   "area1": {
@@ -22,6 +23,7 @@
     "font_opacity": 0,
     "bg_colour": [0, 0, 0],
     "bg_opacity": 0,
-    "rotation": 0
+    "rotation": 0,
+    "beneath": false
   }
 }
