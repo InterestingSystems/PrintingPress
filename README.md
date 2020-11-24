@@ -14,7 +14,7 @@ pip3 install isPrintingPress
 
 ```python
 from PIL import Image
-import printingpress
+import PrintingPress
 import json
 
 # Parse Placements (From JSON file)
@@ -36,7 +36,7 @@ output.save('output.png')
 
 ```python
 from PIL import Image
-import printingpress
+import PrintingPress
 
 placements_py = {
   "area0_image_test": {
