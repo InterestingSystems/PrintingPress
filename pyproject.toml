@@ -20,10 +20,10 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "^3.6"
-Pillow = ">7.0.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "==6.1.2"
+Pillow = "==8.0.1"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
