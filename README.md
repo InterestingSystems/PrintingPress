@@ -5,7 +5,7 @@ A tool to place text and images onto a Pillow image object.
 ## Installation
 
 ```bash
-pip3 install PrintingPress
+pip3 install isPrintingPress
 ```
 
 ## Usage

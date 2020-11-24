@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "PrintingPress"
+name = "isPrintingPress"
 version = "1.0.0-beta.1"
 description = "A tool to place text and images onto a Pillow image object."
 authors = ["hysrx <github@rxyth.co>"]
@@ -13,6 +13,9 @@ classifiers = [
     "Programming Language :: Python :: Implementation :: PyPy",
     "Topic :: Scientific/Engineering :: Image Processing",
     "License :: OSI Approved :: MIT License"
+]
+packages = [
+    { include = "PrintingPress", from = "sr" },
 ]
 
 [tool.poetry.dependencies]
