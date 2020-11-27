@@ -7,7 +7,7 @@ A tool to place text and images onto a Pillow image object.
 You can install PrintingPress via PyPI using the following command:
 
 ```bash
-pip3 install isPrintingPress
+pip3 install iipp
 ```
 
 ### Dependencies
@@ -81,11 +81,13 @@ output.save('output.png')
 
 ### PrintingPress
 PrintingPress, by itself, is licensed under then **MIT License**.
-([File](https://github.com/InterestingSystems/PrintingPress/blob/master/LICENSE) / [OSI](https://opensource.org/licenses/MIT))
+([File](https://github.com/interestingimages/PrintingPress/blob/master/LICENSE) / 
+[OSI](https://opensource.org/licenses/MIT))
 
 ### Anybody
 For testing, Etcetera Type Co's Anybody font is used for testing variable font support.
 
 The font is licensed under the **SIL Open Font License 1.1**, and is included alongside the TrueType font file under the
 `/tests/` folder.
-([File](https://github.com/InterestingSystems/PrintingPress/blob/master/tests/SIL.txt) / [OSI](https://opensource.org/licenses/OFL-1.1))
+([File](https://github.com/interestingimages/PrintingPress/blob/master/tests/SIL.txt) / 
+[OSI](https://opensource.org/licenses/OFL-1.1))
