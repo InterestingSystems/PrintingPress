@@ -1,8 +1,4 @@
-'''
-Interesting Systems - PrintingPress
-===================================
-by hysrx, 2020.
-'''
+# PrintingPress, by hysrx
 
 from PIL import Image, ImageFont, ImageDraw, ImageFilter
 from collections import namedtuple
@@ -116,13 +112,15 @@ class Placements:
 
     def parse(places: dict) -> dict:
         assert isinstance(places, dict), 'Non-dictionary passed in'
-        parsed_places = {}
+
+        # Skips .meta
+        parsed_places = places.pop('.meta') if '.meta' in places else {}
 
         for area_name, area_data in places.items():
             parsed_area = {}
 
             parsed_area['type'] = Internals.retrieve_key(target=area_data, key='type', expected=str,
-                                               required=True, extra=f' (area {area_name})')
+                                                         required=True, extra=f' (area {area_name})')
 
             # Asserts if parsed_area['type'] is not image or text
             assert any([parsed_area['type'] == 'image', parsed_area['type'] == 'text']), f'Area {area_name}: key type has to be "image" or "text", not "{parsed_area["type"]}"'  # noqa: E501
@@ -131,15 +129,15 @@ class Placements:
             for elem, payload in Placements.__parse_map__[parsed_area['type']].items():
                 if payload is not None:
                     retrieved = Internals.retrieve_key(target=area_data, key=elem,
-                                                    expected=payload[0],
-                                                    required=payload[1],
-                                                    fallback=payload[2],
-                                                    extra=f' (area {area_name})')
+                                                       expected=payload[0],
+                                                       required=payload[1],
+                                                       fallback=payload[2],
+                                                       extra=f' (area {area_name})')
 
                     if 'colour' in elem:
                         Internals.rgb_list_check(area_name=area_name,
-                                                elem_name=elem,
-                                                target=retrieved)
+                                                 elem_name=elem,
+                                                 target=retrieved)
 
                     if elem == 'rotation' and retrieved > 360:
                         retrieved = 360
