@@ -101,6 +101,8 @@ class Placements:
             'font_variant': [str, False, None],
             'font_opacity': [int, False, 255],
 
+            'fit': [bool, False, False],
+
             'rotation': [int, False, 0],
             'beneath': [bool, False, False],
             'font': None
@@ -203,7 +205,14 @@ class Placements:
 
 
 def operate(image: Image.Image, placements: dict, suppress: bool = False) -> Image.Image:
-    def rollover(text: str, area_name, font, drawer, wh: list) -> str:
+    def rollover(
+        text: str,
+        area_name,
+        font,
+        drawer,
+        wh: list,
+        raise_exc: bool = False
+    ) -> str:
         # Based on: https://stackoverflow.com/a/62418837
         max_width, max_height = wh
 
@@ -223,7 +232,8 @@ def operate(image: Image.Image, placements: dict, suppress: bool = False) -> Ima
                 lines.append([lines[-1].pop()])
                 w0, h0 = w, h = drawer.multiline_textsize(current(), font=font)
 
-                if h > max_height:  # Rolled over text is too high.
+                # Rolled over text is too high.
+                if h > max_height and raise_exc is False:
                     if words == 1:  # Check if theres only one word.
                         lines.pop()
                         lines[-1] = '…'
@@ -238,6 +248,9 @@ def operate(image: Image.Image, placements: dict, suppress: bool = False) -> Ima
                             lines[-1][-1] += '…'
 
                         break
+                
+                else:
+                    raise Exception
 
         if words == 1 and any([w0 > max_width, h0 > max_width]):
             tw, th = drawer.multiline_textsize(text, font=font)
@@ -269,14 +282,50 @@ def operate(image: Image.Image, placements: dict, suppress: bool = False) -> Ima
             drawer = ImageDraw.Draw(subimage)
             Internals.print_if('  Making drawer... DONE', condition=suppress)
 
-            # Calculate Rollover
-            Internals.print_if('  Calculating rollover...', end='\r', condition=suppress)
-            text = rollover(text=area_data.text,
-                            area_name=area_name,
-                            font=area_data.font,
-                            drawer=drawer,
-                            wh=area_data.wh)
-            Internals.print_if('  Calculating rollover... DONE', condition=suppress)
+            if area_data.fit:
+                Internals.print_if('Calculating minimum font size...', end='\r',
+                                   condition=suppress)
+
+                def recreate(size: int = area_data.font_size):
+                    font = ImageFont.FreeTypeFont(font=str(area_data.path), size=size)
+
+                    try:
+                        area_data.font_variant
+                    except Exception:
+                        pass
+                    else:
+                        font = font.set_variation_by_name(area_data.font_variant)
+
+                size = area_data.font_size
+                font = area_data.font
+
+                while True:
+                    try:
+                        text = rollover(text=area_data.text,
+                                        area_name=area_name,
+                                        font=font,
+                                        drawer=drawer,
+                                        wh=area_data.wh)
+
+                    # This is slow - but this will do for now.
+                    except Exception:
+                        recreate(size - 1)
+
+                    else:
+                        break
+
+                Internals.print_if('Calculating minimum font size... DONE', end='\r',
+                                   condition=suppress)
+            
+            else:
+                # Calculate Rollover
+                Internals.print_if('  Calculating rollover...', end='\r', condition=suppress)
+                text = rollover(text=area_data.text,
+                                area_name=area_name,
+                                font=area_data.font,
+                                drawer=drawer,
+                                wh=area_data.wh)
+                Internals.print_if('  Calculating rollover... DONE', condition=suppress)
 
             # Draw Text
             Internals.print_if('  Drawing text...', end='\r', condition=suppress)
