@@ -80,7 +80,6 @@ class Placements:
 
             'opacity': [int, False, 255],
             'rotation': [int, False, 0],
-
             'beneath': [bool, False, False],
 
             'image': None
@@ -104,8 +103,9 @@ class Placements:
             'font_opacity': [int, False, 255],
 
             'fit': [bool, False, False],
-
+            'beneath': [bool, False, False],
             'rotation': [int, False, 0],
+
             'font': None
         }
     }
@@ -234,7 +234,10 @@ def operate(image: Image.Image, placements: dict, suppress: bool = False) -> Ima
                 w0, h0 = w, h = drawer.multiline_textsize(current(), font=font)
 
                 # Rolled over text is too high.
-                if h > max_height and raise_exc is False:
+                if h > max_height:
+                    if raise_exc:
+                        raise Exception()
+
                     if words == 1:  # Check if theres only one word.
                         lines.pop()
                         lines[-1] = '…'
@@ -249,9 +252,6 @@ def operate(image: Image.Image, placements: dict, suppress: bool = False) -> Ima
                             lines[-1][-1] += '…'
 
                         break
-                
-                else:
-                    raise Exception
 
         if words == 1 and any([w0 > max_width, h0 > max_width]):
             tw, th = drawer.multiline_textsize(text, font=font)
@@ -283,8 +283,9 @@ def operate(image: Image.Image, placements: dict, suppress: bool = False) -> Ima
             drawer = ImageDraw.Draw(subimage)
             Internals.print_if('  Making drawer... DONE', condition=suppress)
 
+            # Rollover/Fit Calculation
             if area_data.fit:
-                Internals.print_if('Calculating minimum font size...', end='\r',
+                Internals.print_if('  Calculating minimum font size...', end='\r',
                                    condition=suppress)
 
                 def recreate(size: int = area_data.font_size):
@@ -295,7 +296,9 @@ def operate(image: Image.Image, placements: dict, suppress: bool = False) -> Ima
                     except Exception:
                         pass
                     else:
-                        font = font.set_variation_by_name(area_data.font_variant)
+                        font.set_variation_by_name(area_data.font_variant)
+
+                    return font
 
                 size = area_data.font_size
                 font = area_data.font
@@ -307,25 +310,31 @@ def operate(image: Image.Image, placements: dict, suppress: bool = False) -> Ima
                                         area_name=area_name,
                                         font=font,
                                         drawer=drawer,
-                                        wh=area_data.wh)
+                                        wh=area_data.wh,
+                                        raise_exc=True)
 
                     # This is slow - but this will do for now.
                     except Exception:
-                        recreate(size - 1)
+                        size -= 1
                         tries += 1
+
+                        font = recreate(size)
 
                     else:
                         break
+                    
+                    Internals.print_if(f'  Calculating minimum font size... ({tries})',
+                                       end='\r', condition=suppress)
 
-                Internals.print_if(f'Calculating minimum font size... DONE ({tries})',
-                                   end='\r', condition=suppress)
-            
+                Internals.print_if(f'  Calculating minimum font size... DONE ({tries}, {area_data.font_size} -> {size})',
+                                   condition=suppress)
+
             else:
-                # Calculate Rollover
+                font = area_data.font
                 Internals.print_if('  Calculating rollover...', end='\r', condition=suppress)
                 text = rollover(text=area_data.text,
                                 area_name=area_name,
-                                font=area_data.font,
+                                font=font,
                                 drawer=drawer,
                                 wh=area_data.wh)
                 Internals.print_if('  Calculating rollover... DONE', condition=suppress)
@@ -339,7 +348,7 @@ def operate(image: Image.Image, placements: dict, suppress: bool = False) -> Ima
             drawer.text(xy=(0, 0),
                         text=text,
                         fill=tuple(fill),
-                        font=area_data.font)
+                        font=font)
             Internals.print_if('  Drawing text... DONE', condition=suppress)
 
             # Rotate subimage
@@ -395,14 +404,16 @@ def operate(image: Image.Image, placements: dict, suppress: bool = False) -> Ima
 
             # Paste Image
             Internals.print_if('  Pasting image onto target...', end='\r', condition=suppress)
+
+            holder = Image.new(mode='RGBA', size=image.size)
+            holder.paste(im=area_image, box=tuple(area_data.xy))
+
             if area_data.beneath:
-                # A holder is required as the area image needs to be positioned relative
-                # to image's dimensions which is not possible merely a paste.
-                holder = Image.new(mode='RGBA', size=image.size)
-                holder.paste(im=area_image, box=tuple(area_data.xy))
-                image = holder.paste(im=image, box=tuple(area_data.xy))
+                image = Image.alpha_composite(holder, image)
+
             else:
-                image.paste(im=area_image, box=tuple(area_data.xy))
+                image = Image.alpha_composite(image, holder)
+
             Internals.print_if('  Pasting image onto target... DONE', condition=suppress)
 
         Internals.print_if('  All operations complete.', condition=suppress)
