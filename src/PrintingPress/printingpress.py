@@ -81,6 +81,8 @@ class Placements:
             'opacity': [int, False, 255],
             'rotation': [int, False, 0],
 
+            'beneath': [bool, False, False],
+
             'image': None
         },
 
@@ -104,7 +106,6 @@ class Placements:
             'fit': [bool, False, False],
 
             'rotation': [int, False, 0],
-            'beneath': [bool, False, False],
             'font': None
         }
     }
