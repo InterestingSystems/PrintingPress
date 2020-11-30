@@ -298,6 +298,7 @@ def operate(image: Image.Image, placements: dict, suppress: bool = False) -> Ima
 
                 size = area_data.font_size
                 font = area_data.font
+                tries = 1
 
                 while True:
                     try:
@@ -310,12 +311,13 @@ def operate(image: Image.Image, placements: dict, suppress: bool = False) -> Ima
                     # This is slow - but this will do for now.
                     except Exception:
                         recreate(size - 1)
+                        tries += 1
 
                     else:
                         break
 
-                Internals.print_if('Calculating minimum font size... DONE', end='\r',
-                                   condition=suppress)
+                Internals.print_if(f'Calculating minimum font size... DONE ({tries})',
+                                   end='\r', condition=suppress)
             
             else:
                 # Calculate Rollover
