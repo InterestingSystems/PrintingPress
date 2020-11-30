@@ -12,7 +12,7 @@
     "path": "tests/greg_davies.jpg",
 
     "xy": [25, 100],
-    "wh": [50, 75],
+    "wh": [100, 150],
 
     "opacity": 128,
     "rotation": 30
@@ -28,7 +28,7 @@
     "wh": [450, 450],
     
     "font_colour": [128, 0, 128],
-    "font_size": 50,
+    "font_size": 300,
   
     "font_variant": "SemiBold Condensed",
 
