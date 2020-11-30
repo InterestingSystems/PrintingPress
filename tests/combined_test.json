@@ -1,10 +1,21 @@
 {
   "funny_davies": {
     "type": "image",
-    "path": "greg_davies.jpg",
+    "path": "tests/greg_davies.jpg",
 
     "xy": [25, 25],
     "wh": [450, 450]
+  },
+
+  "funnier_davies": {
+    "type": "image",
+    "path": "tests/greg_davies.jpg",
+
+    "xy": [25, 100],
+    "wh": [50, 75],
+
+    "opacity": 128,
+    "rotation": 30
   },
 
   "text_test": {
@@ -20,9 +31,11 @@
     "font_size": 50,
   
     "font_variant": "SemiBold Condensed",
+
+    "fit": true,
   
     "bg_colour": [128, 0, 128],
-    "bg_opacity": 128,
+    "bg_opacity": 200,
   
     "rotation": 0
   }
