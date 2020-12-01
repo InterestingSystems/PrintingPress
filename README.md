@@ -14,7 +14,7 @@ pip3 install iipp
 
 PrintingPress uses Pillow, with the minimum version officially supported being `7.0.0`.
 
-###### Compatibility for Pillow versions under `7.0.0` is not guaranteed, but you are free to try.
+###### Compatibility for Pillow versions under `7.0.0` is not guaranteed, but you are free to try using --no-deps when installing.
 
 ## Usage
 
@@ -79,15 +79,6 @@ output.save('output.png')
 
 ## Licenses
 
-### PrintingPress
-PrintingPress, by itself, is licensed under then **MIT License**.
+PrintingPress is licensed under then **MIT License**.
 ([File](https://github.com/interestingimages/PrintingPress/blob/master/LICENSE) / 
 [OSI](https://opensource.org/licenses/MIT))
-
-### Anybody
-For testing, Etcetera Type Co's Anybody font is used for testing variable font support.
-
-The font is licensed under the **SIL Open Font License 1.1**, and is included alongside the TrueType font file under the
-`/tests/` folder.
-([File](https://github.com/interestingimages/PrintingPress/blob/master/tests/SIL.txt) / 
-[OSI](https://opensource.org/licenses/OFL-1.1))
