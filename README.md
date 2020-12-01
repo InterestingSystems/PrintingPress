@@ -16,6 +16,22 @@ PrintingPress uses Pillow, with the minimum version officially supported being `
 
 ###### Compatibility for Pillow versions under `7.0.0` is not guaranteed, but you are free to try using --no-deps when installing.
 
+## Changelog
+
+### 1.0.1
+
+- Fix Pillow dependency version
+
+- Fix handling of PIL Image paths for image type Placement areas
+
+- Fix handling of Placement areas named ".meta"
+
+### 1.0.0
+
+- Fix image opacity related issues
+
+- Add a fit option in Placements to fit text
+
 ## Usage
 
 ### Using placements from a JSON File
