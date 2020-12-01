@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "iipp"
-version = "1.0.0.post2"
+version = "1.0.1"
 description = "A tool to place text and images onto a Pillow image object."
 authors = ["hysrx <github@rxyth.co>"]
 license = "MIT"
