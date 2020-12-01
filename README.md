@@ -12,9 +12,9 @@ pip3 install iipp
 
 ### Dependencies
 
-PrintingPress uses Pillow, with the minimum version officially supported being `7.0.0.post3`.
+PrintingPress uses Pillow, with the minimum version officially supported being `7.0.0`.
 
-###### Compatibility for Pillow versions under `7.0.0.post3` is not guaranteed, but you are free to try.
+###### Compatibility for Pillow versions under `7.0.0` is not guaranteed, but you are free to try.
 
 ## Usage
 
