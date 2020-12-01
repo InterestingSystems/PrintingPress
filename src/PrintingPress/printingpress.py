@@ -148,7 +148,7 @@ class Placements:
                     if 'opacity' in elem and retrieved > 255:
                         retrieved = 255
 
-                    if elem == 'path':
+                    if elem == 'path' and isinstance(retrieved, str):
                         retrieved = Path(retrieved).absolute()
 
                     if elem == 'xy' or elem == 'wh':
