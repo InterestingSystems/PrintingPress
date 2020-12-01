@@ -117,7 +117,7 @@ class Placements:
         assert isinstance(places, dict), 'Non-dictionary passed in'
 
         # Skips .meta
-        parsed_places = places.pop('.meta') if '.meta' in places else {}
+        parsed_places = {'.meta': places.pop('.meta')} if '.meta' in places else {}
 
         for area_name, area_data in places.items():
             parsed_area = {}
@@ -157,7 +157,7 @@ class Placements:
                     parsed_area[elem] = retrieved
 
             if parsed_area['type'] == 'text':  # Text-specific post-parse operations
-                assert parsed_area['path'].is_file(), f'Area {area_name}: key path has to be an existant file'  # noqa: E501
+                assert parsed_area['path'].is_file(), f'Area {area_name}: {parsed_area["path"]} is non-existant'  # noqa: E501
 
                 # Create PIL Font Object
                 font = ImageFont.FreeTypeFont(font=str(parsed_area['path']),
@@ -187,7 +187,7 @@ class Placements:
                     parsed_area['image'] = parsed_area['path']
 
                 else:
-                    assert parsed_area['path'].is_file(), f'Area {area_name}: key path has to be an existant file'  # noqa: E501
+                    assert parsed_area['path'].is_file(), f'Area {area_name}: {parsed_area["path"]} is non-existant'  # noqa: E501
 
                     # Else, create a PIL Image Object from the path given
                     parsed_area['image'] = Image.open(parsed_area['path']).convert("RGBA")
@@ -265,6 +265,9 @@ def operate(image: Image.Image, placements: dict, suppress: bool = False) -> Ima
         image = image.convert('RGBA')
 
     suppress = not suppress  # negate for condition in Internals.print_if
+
+    if '.meta' in placements:
+        placements.pop('.meta')
 
     for area_name, area_data in placements.items():
         Internals.print_if(f'\nOperating on area {area_name}. ({area_data.type})',
