@@ -18,6 +18,10 @@ PrintingPress uses Pillow, with the minimum version officially supported being `
 
 ## Changelog
 
+### 1.0.2
+
+- Fix single word text fitting for image type Placement areas
+
 ### 1.0.1
 
 - Fix Pillow dependency version

@@ -253,6 +253,9 @@ def operate(image: Image.Image, placements: dict, suppress: bool = False) -> Ima
 
                         break
 
+                if raise_exc and words ==1:
+                    raise Exception()
+
         if words == 1 and any([w0 > max_width, h0 > max_width]):
             tw, th = drawer.multiline_textsize(text, font=font)
             print(f'Warning: Area "{area_name}" has a single word that overflows the given box. (Box: {wh}, Text: {tw, th})')  # noqa: E501
@@ -299,7 +302,10 @@ def operate(image: Image.Image, placements: dict, suppress: bool = False) -> Ima
                     except Exception:
                         pass
                     else:
-                        font.set_variation_by_name(area_data.font_variant)
+                        try:
+                            font.set_variation_by_name(area_data.font_variant)
+                        except Exception:
+                            pass
 
                     return font
 
