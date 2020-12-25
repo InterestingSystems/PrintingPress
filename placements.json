@@ -23,6 +23,7 @@
     "font_opacity": 0,
     "bg_colour": [0, 0, 0],
     "bg_opacity": 0,
+    "fit": false,
     "rotation": 0,
     "beneath": false
   }
