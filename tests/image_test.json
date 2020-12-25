@@ -1,9 +1,0 @@
-{
-  "funny_davies": {
-    "type": "image",
-    "path": "greg_davies.jpg",
-  
-    "xy": [25, 25],
-    "wh": [450, 450]
-  }
-}

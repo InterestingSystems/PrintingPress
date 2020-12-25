@@ -1,0 +1,27 @@
+{
+  "viewfinder": {
+    "type": "image",
+    "path": "tests/ii/verycool23ar.png",
+
+    "xy": [100, 100],
+    "wh": [2800, 2100],
+
+    "beneath": true
+  },
+
+  "title": {
+    "type": "text",
+    "text": "Rap snitches, telling all they business. Show up in court and their own star witness.",
+
+    "path": "tests/Manrope.ttf",
+
+    "xy": [100, 2300],
+    "wh": [2800, 850],
+
+    "fit": true,
+
+    "font_colour": [255, 255, 255],
+    "font_size": 366,
+    "font_variant": "Bold"
+  }
+}

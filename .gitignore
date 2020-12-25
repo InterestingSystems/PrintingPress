@@ -3,7 +3,3 @@
 .vscode/
 __pycache__/
 dist/
-
-# Custom
-testers/
-tests/
