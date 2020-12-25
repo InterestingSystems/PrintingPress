@@ -1,267 +1,13 @@
 # PrintingPress, by hysrx
 
 from PIL import Image, ImageFont, ImageDraw, ImageFilter
-from collections import namedtuple
-from pathlib import Path
-
-
-class Internals:
-    def print_if(message: str = '', end: str = '\n', condition: bool = True) -> None:
-        print(message, end=end) if condition else None
-
-    def format_message(message: str, format_map: dict) -> str:
-        for key, value in format_map.items():
-            message = message.replace(key, str(value))
-        return message
-
-    def retrieve_key(target: dict, key: str, expected: type, required: bool = True,
-                     fallback=None, extra: str = '',
-                     expected_message: str = 'key f:key is type f:type, but expected f:extype',
-                     required_message: str = 'key f:key is required'):
-        # Formats all formattable words into their representated.
-        message_formatting_map = {
-            'f:key': key,
-            'f:extype': expected,
-            'f:type': None,  # this is manipulated later
-            'f:extra': extra
-        }
-
-        try:
-            retrieved = target[key]
-
-        except KeyError:
-            if required:
-                raise KeyError(Internals.format_message(required_message,
-                                                        message_formatting_map))
-            else:
-                return fallback
-
-        else:
-            if isinstance(retrieved, expected) is False:
-                message_formatting_map['f:type'] = str(type(retrieved))
-                raise TypeError(Internals.format_message(expected_message,
-                                                         message_formatting_map))
-
-            return retrieved
-
-    def rgb_list_check(area_name: str, elem_name: str, target: list) -> None:
-        assert len(target) == 3, f'Area {area_name}: key {elem_name} has {len(target)} values (expected 3)'  # noqa: E501
-
-        for elem in target:
-            assert elem < 256, f'Area {area_name}: key {elem_name} has values that exceed 255'
-    
-    def filter_list_check(area_name: str, filter_name: str, target: list) -> None:
-        filter_map = {
-            'gaussian_blur': [int],
-            'box_blur': [int]
-        }
-        
-        filter_target_mapping = filter_map[filter_name]
-
-        # Check list lengths
-        assert len(filter_target_mapping) == len(target), f'Area {area_name}: key filter_data has {len(target)} values (expected {len(filter_target_mapping)})'  # noqa: E501
-
-        for expected, actual in zip(filter_target_mapping, target):
-            assert isinstance(actual, expected), f'Area {area_name}: key filter_data has values with unexpected types'  # noqa: E501
-
-class Placements:
-    __parse_map__ = {
-        # Argument Format: [expected (type), required (bool), fallback (*)]
-        'image': {
-            'type': None,
-
-            'path': [(str, Image.Image), True, None],
-
-            'xy': [list, True, None],
-            "wh": [list, False, None],
-
-            'filter': [str, False, None],
-            'filter_data': [list, False, []],
-
-            'opacity': [int, False, 255],
-            'rotation': [int, False, 0],
-            'beneath': [bool, False, False],
-
-            'image': None
-        },
-
-        'text': {
-            'type': None,
-
-            'path': [str, True, None],
-            'text': [str, True, None],
-
-            'xy': [list, True, None],
-            'wh': [list, True, None],
-
-            'bg_colour': [list, False, [0, 0, 0]],
-            'bg_opacity': [int, False, 255],
-
-            'font_colour': [list, False, [255, 255, 255]],
-            'font_size': [int, True, None],
-            'font_variant': [str, False, None],
-            'font_opacity': [int, False, 255],
-
-            'fit': [bool, False, False],
-            'beneath': [bool, False, False],
-            'rotation': [int, False, 0],
-
-            'font': None
-        }
-    }
-
-    __imagearea__ = namedtuple('ImageArea', __parse_map__['image'])
-    __textarea__ = namedtuple('TextArea', __parse_map__['text'])
-
-    def parse(places: dict) -> dict:
-        assert isinstance(places, dict), 'Non-dictionary passed in'
-
-        # Skips .meta
-        parsed_places = {'.meta': places.pop('.meta')} if '.meta' in places else {}
-
-        for area_name, area_data in places.items():
-            parsed_area = {}
-
-            parsed_area['type'] = Internals.retrieve_key(target=area_data, key='type', expected=str,
-                                                         required=True, extra=f' (area {area_name})')
-
-            # Asserts if parsed_area['type'] is not image or text
-            assert any([parsed_area['type'] == 'image', parsed_area['type'] == 'text']), f'Area {area_name}: key type has to be "image" or "text", not "{parsed_area["type"]}"'  # noqa: E501
-
-            # Loops through the area-specific mapping and does type/availability checks
-            for elem, payload in Placements.__parse_map__[parsed_area['type']].items():
-                if payload is not None:
-                    retrieved = Internals.retrieve_key(target=area_data, key=elem,
-                                                       expected=payload[0],
-                                                       required=payload[1],
-                                                       fallback=payload[2],
-                                                       extra=f' (area {area_name})')
-
-                    if 'colour' in elem:
-                        Internals.rgb_list_check(area_name=area_name,
-                                                 elem_name=elem,
-                                                 target=retrieved)
-
-                    if elem == 'rotation' and retrieved > 360:
-                        retrieved = 360
-
-                    if 'opacity' in elem and retrieved > 255:
-                        retrieved = 255
-
-                    if elem == 'path' and isinstance(retrieved, str):
-                        retrieved = Path(retrieved).absolute()
-
-                    if elem == 'xy' or elem == 'wh':
-                        assert len(retrieved) == 2, f'Area {area_name}: key {elem} has {len(retrieved)} values (expected 2)'  # noqa: E501
-
-                    parsed_area[elem] = retrieved
-
-            if parsed_area['type'] == 'text':  # Text-specific post-parse operations
-                assert parsed_area['path'].is_file(), f'Area {area_name}: {parsed_area["path"]} is non-existant'  # noqa: E501
-
-                # Create PIL Font Object
-                font = ImageFont.FreeTypeFont(font=str(parsed_area['path']),
-                                              size=parsed_area['font_size'])
-
-                # Retrieve font_variant key value
-                font_variant = Internals.retrieve_key(target=parsed_area, key='font_variant',
-                                                      expected=(str, type(None)), fallback=None)
-
-                # Attempt to set font_variant
-                if font_variant is not None:
-                    try:
-                        font.set_variation_by_name(bytes(font_variant, 'utf-8'))
-                    except Exception as e:
-                        print(f'Area: {area_name}: font_variant is invalid, continuing. ({e})')
-
-                # Add font into parsed_area
-                parsed_area['font'] = font
-
-                parsed_places[area_name] = Placements.__textarea__(**parsed_area)  # Create namedtuple
-
-            else:  # Image-specific post-parse operations
-                if isinstance(parsed_area['path'], Image.Image):
-                    # Users can pass PIL Images into the path key if constructing a placement
-                    # dictionary in Python rather than from a JSON file. So, if this happens
-                    # just use the image from the path key.
-                    parsed_area['image'] = parsed_area['path']
-
-                else:
-                    assert parsed_area['path'].is_file(), f'Area {area_name}: {parsed_area["path"]} is non-existant'  # noqa: E501
-
-                    # Else, create a PIL Image Object from the path given
-                    parsed_area['image'] = Image.open(parsed_area['path']).convert("RGBA")
-
-                if str(parsed_area['filter']) not in ['gaussian_blur', 'box_blur']:
-                    parsed_area['filter'] = None
-                
-                else:
-                    Internals.filter_list_check(area_name=area_name,
-                                                filter_name=parsed_area['filter'],
-                                                target=parsed_area['filter_data'])
-
-                parsed_places[area_name] = Placements.__imagearea__(**parsed_area)  # Create namedtuple
-
-        return parsed_places
+from . import (
+    internals as Internals,
+    exceptions
+)
 
 
 def operate(image: Image.Image, placements: dict, suppress: bool = False) -> Image.Image:
-    def rollover(
-        text: str,
-        area_name,
-        font,
-        drawer,
-        wh: list,
-        raise_exc: bool = False
-    ) -> str:
-        # Based on: https://stackoverflow.com/a/62418837
-        max_width, max_height = wh
-
-        words = len(text.split())
-        lines = [[]]
-        current = lambda: '\n'.join([' '.join(line) for line in lines])  # noqa: E731
-
-        w0, h0 = 0, 0
-
-        for word in text.split():
-            # Insert word and measure
-            lines[-1].append(word)
-            w, h = drawer.multiline_textsize(current(), font=font)
-
-            if w > max_width:  # Too wide, roll over text.
-                # Move first line to second line (too wide) and measure
-                lines.append([lines[-1].pop()])
-                w0, h0 = w, h = drawer.multiline_textsize(current(), font=font)
-
-                # Rolled over text is too high.
-                if h > max_height:
-                    if raise_exc:
-                        raise Exception()
-
-                    if words == 1:  # Check if theres only one word.
-                        lines.pop()
-                        lines[-1] = '…'
-
-                    else:
-                        lines.pop()
-                        lines[-1][-1] += '…'
-
-                        # Cycle through text to find last word short enough to add elipsis
-                        while drawer.multiline_textsize(current(), font=font)[0] > max_width:
-                            lines[-1].pop()
-                            lines[-1][-1] += '…'
-
-                        break
-
-                if raise_exc and words ==1:
-                    raise Exception()
-
-        if words == 1 and any([w0 > max_width, h0 > max_width]):
-            tw, th = drawer.multiline_textsize(text, font=font)
-            print(f'Warning: Area "{area_name}" has a single word that overflows the given box. (Box: {wh}, Text: {tw, th})')  # noqa: E501
-
-        return current()
-
     assert isinstance(image, Image.Image), 'Passed image parameter is not a PIL Image'
 
     if 'A' not in image.mode:
@@ -277,6 +23,61 @@ def operate(image: Image.Image, placements: dict, suppress: bool = False) -> Ima
                            condition=suppress)
 
         if area_data.type == 'text':  # Text-based operation
+            def rollover(
+                text: str,
+                area_name: str,
+                font: ImageFont.ImageFont,
+                wh: list,
+                raise_err: bool = False
+            ) -> list:
+                # Rollover
+                max_width, max_height = wh
+
+                text = text.split()
+                words = len(text)
+
+                wcurr = lambda: '\n'.join([' '.join(l) for l in lines])
+                wlast = lambda: ' '.join(lines[-1])
+
+                line_h_local = 0
+
+                lines = [[]]
+                line_h = []
+
+                for word in text:
+                    lines[-1].append(word)
+                    _, _, txtw, txth = font.getmask(' '.join(lines[-1])).getbbox()
+
+                    if txtw > max_width:  # Too wide, rollover
+                        lines.append([lines[-1].pop(-1)])
+
+                        if line_h_local == 0:
+                            line_h_local = txth + font.font.descent
+
+                        line_h.append(line_h_local)
+                        line_h.append(txth)
+
+                    else:
+                        line_h_local = max([line_h_local, txth + font.font.descent])
+
+                    if sum(line_h) > max_height or line_h_local > max_height:
+                        if raise_err:  # Too tall even after rollover, need to change font size
+                            raise exceptions.RolloverError()
+
+                        if words == 1:
+                            print(f'Warning: Area {area_name}\'s text exceeds the box and will not be displayed properly. [Text: ({txtw}, {txth}), Box: {wh}]')
+
+                        lines.pop(-1)
+                        try:
+                            lines[-1][-1] = '…'
+                        except IndexError:
+                            pass
+
+                if lines[0] == []:
+                    lines.pop(0)
+
+                return lines
+
             # Subimage creation
             Internals.print_if('  Creating subimage...', end='\r', condition=suppress)
             subimage = Image.new(mode='RGBA',
@@ -284,19 +85,13 @@ def operate(image: Image.Image, placements: dict, suppress: bool = False) -> Ima
                                  color=(area_data.bg_opacity,) + tuple(area_data.bg_colour))
             Internals.print_if('  Creating subimage... DONE', condition=suppress)
 
-            # Make ImageDraw.Draw
-            Internals.print_if('  Making drawer...', end='\r', condition=suppress)
-            drawer = ImageDraw.Draw(subimage)
-            Internals.print_if('  Making drawer... DONE', condition=suppress)
-
             # Rollover/Fit Calculation
             if area_data.fit:
                 Internals.print_if('  Calculating minimum font size...', end='\r',
                                    condition=suppress)
 
-                def recreate(size: int = area_data.font_size):
+                def recreate(size: int = area_data.font_size) -> ImageFont.ImageFont:
                     font = ImageFont.FreeTypeFont(font=str(area_data.path), size=size)
-
                     try:
                         area_data.font_variant
                     except Exception:
@@ -306,8 +101,8 @@ def operate(image: Image.Image, placements: dict, suppress: bool = False) -> Ima
                             font.set_variation_by_name(area_data.font_variant)
                         except Exception:
                             pass
-
                     return font
+                
 
                 size = area_data.font_size
                 font = area_data.font
@@ -318,20 +113,16 @@ def operate(image: Image.Image, placements: dict, suppress: bool = False) -> Ima
                         text = rollover(text=area_data.text,
                                         area_name=area_name,
                                         font=font,
-                                        drawer=drawer,
                                         wh=area_data.wh,
-                                        raise_exc=True)
-
-                    # This is slow - but this will do for now.
-                    except Exception:
+                                        raise_err=True)
+                    except exceptions.RolloverError:
+                        # This is slow - but this will do for now.
                         size -= 1
                         tries += 1
-
                         font = recreate(size)
-
                     else:
                         break
-                    
+
                     Internals.print_if(f'  Calculating minimum font size... ({tries})',
                                        end='\r', condition=suppress)
 
@@ -344,29 +135,46 @@ def operate(image: Image.Image, placements: dict, suppress: bool = False) -> Ima
                 text = rollover(text=area_data.text,
                                 area_name=area_name,
                                 font=font,
-                                drawer=drawer,
                                 wh=area_data.wh)
                 Internals.print_if('  Calculating rollover... DONE', condition=suppress)
+
 
             # Draw Text
             Internals.print_if('  Drawing text...', end='\r', condition=suppress)
 
+            drawer = ImageDraw.Draw(subimage)
             fill = area_data.font_colour.copy()
             fill.append(area_data.font_opacity)
 
-            drawer.text(xy=(0, 0),
-                        text=text,
-                        fill=tuple(fill),
-                        font=font)
+            x, y = 0, 0
+
+            for line_no, line in enumerate(text):
+                # TODO: Support ltr or centered text by changing x coords
+                text = ' '.join(line)
+                txth = font.getmask(text).getbbox()[3]
+
+                if line_no == 0:
+                    y = 0 - (font.font.descent / 2)
+
+                drawer.text(xy=(x, y),
+                            text=text,
+                            fill=tuple(fill),
+                            font=font)
+
+                y += txth + font.font.descent
+
             Internals.print_if('  Drawing text... DONE', condition=suppress)
+
 
             # Rotate subimage
             Internals.print_if('  Rotating subimage...', end='\r', condition=suppress)
             subimage = subimage.rotate(area_data.rotation, expand=True)
             Internals.print_if('  Rotating subimage... DONE', end='\r', condition=suppress)
 
+
             # Press subimage onto image
             Internals.print_if('  Pressing subimage into image...', end='\r', condition=suppress)
+
 
             # A holder image is neccesary as just pasting, if the subimage is transparent,
             # image becomes transparent as well.
@@ -379,16 +187,17 @@ def operate(image: Image.Image, placements: dict, suppress: bool = False) -> Ima
 
             Internals.print_if('  Pressing subimage into image... DONE', condition=suppress)
 
+
         else:  # Image-based operation
             if area_data.wh is not None:
                 # Resize Image
                 Internals.print_if('  Resizing image...', end='\r', condition=suppress)
                 area_image = area_data.image.resize(area_data.wh)
                 Internals.print_if('  Resizing image... DONE', condition=suppress)
-
             else:
                 area_image = area_data.image.copy()
-            
+
+
             if area_data.filter is not None:  # Filter Application
                 Internals.print_if('  Applying filter to image...', end='\r', condition=suppress)
 
@@ -396,20 +205,24 @@ def operate(image: Image.Image, placements: dict, suppress: bool = False) -> Ima
                 if area_data.filter == 'gaussian_blur':
                     # filter_data = [radius]
                     area_image = area_image.filter(ImageFilter.GaussianBlur(area_data.filter_data[0]))
-                
                 elif area_data.filter == 'box_blur':
                     # filter_data = [radius]
                     area_image = area_image.filter(ImageFilter.BoxBlur(area_data.filter_data[0]))
 
                 Internals.print_if('  Applying filter to image... DONE', condition=suppress)
 
+
             Internals.print_if('  Adjusting image...', end='\r', condition=suppress)
+
+
             # Change Image Opacity
             area_image.putalpha(area_data.opacity)
+
 
             # Rotate Image
             area_image = area_image.rotate(area_data.rotation, expand=True)
             Internals.print_if('  Adjusting image... DONE', condition=suppress)
+
 
             # Paste Image
             Internals.print_if('  Pasting image onto target...', end='\r', condition=suppress)
@@ -419,7 +232,6 @@ def operate(image: Image.Image, placements: dict, suppress: bool = False) -> Ima
 
             if area_data.beneath:
                 image = Image.alpha_composite(holder, image)
-
             else:
                 image = Image.alpha_composite(image, holder)
 
