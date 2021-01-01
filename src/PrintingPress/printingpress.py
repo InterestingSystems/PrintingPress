@@ -37,9 +37,6 @@ def operate(
                 text = text.split()
                 words = len(text)
 
-                wcurr = lambda: "\n".join([" ".join(l) for l in lines])
-                wlast = lambda: " ".join(lines[-1])
-
                 line_h_local = 0
 
                 lines = [[]]
@@ -69,7 +66,9 @@ def operate(
 
                         if words == 1:
                             print(
-                                f"Warning: Area {area_name}'s text exceeds the box and will not be displayed properly. [Text: ({txtw}, {txth}), Box: {wh}]"
+                                f"Warning: Area {area_name}'s text exceeds the box "
+                                f"and will not be displayed properly. [Text: ({txtw}, "
+                                f"{txth}), Box: {wh}]"
                             )
 
                         lines.pop(-1)
@@ -139,7 +138,8 @@ def operate(
                     )
 
                 Internals.print_if(
-                    f"  Calculating minimum font size... DONE ({tries}, {area_data.font_size} -> {size})",
+                    "  Calculating minimum font size... DONE "
+                    f"({tries}, {area_data.font_size} -> {size})",
                     condition=suppress,
                 )
 
@@ -188,8 +188,8 @@ def operate(
                 "  Pressing subimage into image...", end="\r", condition=suppress
             )
 
-            # A holder image is neccesary as just pasting, if the subimage is transparent,
-            # image becomes transparent as well.
+            # A holder image is neccesary as just pasting, if the subimage is
+            # transparent, image becomes transparent as well.
             holder = Image.new("RGBA", image.size)
             holder.paste(im=subimage, box=tuple(area_data.xy), mask=subimage)
             if area_data.beneath:

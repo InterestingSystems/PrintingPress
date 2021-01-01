@@ -7,7 +7,7 @@ from pathlib import Path
 def rgb_list_check(area_name: str, elem_name: str, target: list) -> None:
     assert (
         len(target) == 3
-    ), f"Area {area_name}: key {elem_name} has {len(target)} values (expected 3)"  # noqa: E501
+    ), f"Area {area_name}: key {elem_name} has {len(target)} values (expected 3)"
 
     for elem in target:
         assert (
@@ -21,14 +21,15 @@ def filter_list_check(area_name: str, filter_name: str, target: list) -> None:
     filter_target_mapping = filter_map[filter_name]
 
     # Check list lengths
-    assert len(filter_target_mapping) == len(
-        target
-    ), f"Area {area_name}: key filter_data has {len(target)} values (expected {len(filter_target_mapping)})"  # noqa: E501
+    assert len(filter_target_mapping) == len(target), (
+        f"Area {area_name}: key filter_data has {len(target)} values "
+        f"(expected {len(filter_target_mapping)})"
+    )
 
     for expected, actual in zip(filter_target_mapping, target):
         assert isinstance(
             actual, expected
-        ), f"Area {area_name}: key filter_data has values with unexpected types"  # noqa: E501
+        ), f"Area {area_name}: key filter_data has values with unexpected types"
 
 
 class Placements:
@@ -88,7 +89,10 @@ class Placements:
             # Asserts if parsed_area['type'] is not image or text
             assert any(
                 [parsed_area["type"] == "image", parsed_area["type"] == "text"]
-            ), f'Area {area_name}: key type has to be "image" or "text", not "{parsed_area["type"]}"'  # noqa: E501
+            ), (
+                f'Area {area_name}: key type has to be "image" or "text", '
+                f'not "{parsed_area["type"]}"'
+            )
 
             # Loops through the area-specific mapping and does type/availability checks
             for elem, payload in Placements.__parse_map__[parsed_area["type"]].items():
@@ -117,16 +121,17 @@ class Placements:
                         retrieved = Path(retrieved).absolute()
 
                     if elem == "xy" or elem == "wh":
-                        assert (
-                            len(retrieved) == 2
-                        ), f"Area {area_name}: key {elem} has {len(retrieved)} values (expected 2)"  # noqa: E501
+                        assert len(retrieved) == 2, (
+                            f"Area {area_name}: key {elem} has {len(retrieved)} values "
+                            "(expected 2)"
+                        )
 
                     parsed_area[elem] = retrieved
 
             if parsed_area["type"] == "text":  # Text-specific post-parse operations
                 assert parsed_area[
                     "path"
-                ].is_file(), f'Area {area_name}: {parsed_area["path"]} is non-existant'  # noqa: E501
+                ].is_file(), f'Area {area_name}: {parsed_area["path"]} is non-existant'
 
                 # Create PIL Font Object
                 font = ImageFont.FreeTypeFont(
@@ -147,7 +152,8 @@ class Placements:
                         font.set_variation_by_name(bytes(font_variant, "utf-8"))
                     except Exception as e:
                         print(
-                            f"Area: {area_name}: font_variant is invalid, continuing. ({e})"
+                            f"Area: {area_name}: font_variant is invalid, continuing. "
+                            f"({e})"
                         )
 
                 # Add font into parsed_area
@@ -159,15 +165,17 @@ class Placements:
 
             else:  # Image-specific post-parse operations
                 if isinstance(parsed_area["path"], Image.Image):
-                    # Users can pass PIL Images into the path key if constructing a placement
-                    # dictionary in Python rather than from a JSON file. So, if this happens
-                    # just use the image from the path key.
+                    # Users can pass PIL Images into the path key if constructing
+                    # a placement dictionary in Python rather than from a JSON file.
+                    # le. So, if this happens just use the image from the path key.
                     parsed_area["image"] = parsed_area["path"]
 
                 else:
                     assert parsed_area[
                         "path"
-                    ].is_file(), f'Area {area_name}: {parsed_area["path"]} is non-existant'  # noqa: E501
+                    ].is_file(), (
+                        f'Area {area_name}: {parsed_area["path"]} is non-existant'
+                    )
 
                     # Else, create a PIL Image Object from the path given
                     parsed_area["image"] = Image.open(parsed_area["path"]).convert(
