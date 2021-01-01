@@ -2,7 +2,7 @@
 name = "iipp"
 version = "1.1.0"
 description = "A tool to place text and images onto a Pillow image object."
-authors = ["hysrx <github@rxyth.co>"]
+authors = ["hysrx <rxyth@criptext.com>"]
 license = "MIT"
 readme = "README.md"
 repository = "https://github.com/interestingimages/PrintingPress"
