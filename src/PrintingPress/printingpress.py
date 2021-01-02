@@ -40,28 +40,48 @@ def operate(
                 line_h_local = 0
 
                 lines = [[]]
-                line_h = []
+                line_h = [0]
+
+                # For more references:
+                # https://levelup.gitconnected.com/
+                # how-to-properly-calculate-text-size-in-pil-images-17a2cc6f51fd
 
                 for word in text:
                     lines[-1].append(word)
                     _, _, txtw, txth = font.getmask(" ".join(lines[-1])).getbbox()
 
-                    if txtw > max_width:  # Too wide, rollover
+                    if txtw > max_width and words > 1:  # Too wide, rollover
                         lines.append([lines[-1].pop(-1)])
 
                         if line_h_local == 0:
-                            line_h_local = txth + font.font.descent
+                            line_h_local = max([txth + font.font.descent, txth])
 
                         line_h.append(line_h_local)
-                        line_h.append(txth)
+                        line_h_local = 0
 
-                    else:
-                        line_h_local = max([line_h_local, txth + font.font.descent])
+                    elif txtw < max_width and words > 1:
+                        line_h[-1] = max([txth + font.font.descent, txth])
 
-                    if sum(line_h) > max_height or line_h_local > max_height:
-                        if (
-                            raise_err
-                        ):  # Too tall even after rollover, need to change font size
+                    elif words == 1:  # Special Treatment
+                        if txtw > max_width:  # Can't rollover, is one word
+                            if raise_err:
+                                raise exceptions.RolloverError()
+                            else:
+                                print(
+                                    f"Warning: Area {area_name}'s text exceeds the box "
+                                    "and will not be displayed properly. [Text: "
+                                    f"({txtw}, {txth}), Box: {wh}]"
+                                )
+
+                    height_conditions = [
+                        sum(line_h) > max_height,
+                        line_h_local > max_height,
+                    ]
+
+                    if any(height_conditions):
+                        if raise_err:
+                            # Too tall even after rollover, need to change font size
+                            # DEBUG: print('---- TOO TALL ----\n')
                             raise exceptions.RolloverError()
 
                         if words == 1:
@@ -112,10 +132,26 @@ def operate(
 
                 size = area_data.font_size
                 font = area_data.font
+                last_size = 0
                 tries = 1
+                iterator = size / 2
+                direction = 1
 
                 while True:
                     try:
+                        if direction == 0:  # Iterate up
+                            size = int(size + iterator)
+                        else:  # Iterate down
+                            size = int(size - iterator)
+
+                        Internals.print_if(
+                            "  Calculating minimum font size... "
+                            f"({tries}, {area_data.font_size} -> {size})   ",
+                            end='\r', condition=suppress,
+                        )
+
+                        font = recreate(size)
+
                         text = rollover(
                             text=area_data.text,
                             area_name=area_name,
@@ -123,23 +159,23 @@ def operate(
                             wh=area_data.wh,
                             raise_err=True,
                         )
-                    except exceptions.RolloverError:
-                        # This is slow - but this will do for now.
-                        size -= 1
-                        tries += 1
-                        font = recreate(size)
-                    else:
-                        break
 
-                    Internals.print_if(
-                        f"  Calculating minimum font size... ({tries})",
-                        end="\r",
-                        condition=suppress,
-                    )
+                    except exceptions.RolloverError:
+                        direction = 1
+
+                    else:
+                        if size == last_size:
+                            break
+
+                        direction = 0
+
+                    last_size = size
+                    iterator = round(iterator / 2, 1)
+                    tries += 1
 
                 Internals.print_if(
                     "  Calculating minimum font size... DONE "
-                    f"({tries}, {area_data.font_size} -> {size})",
+                    f"({tries}, {area_data.font_size} -> {size})   ",
                     condition=suppress,
                 )
 
@@ -165,10 +201,11 @@ def operate(
             for line_no, line in enumerate(text):
                 # TODO: Support ltr or centered text by changing x coords
                 text = " ".join(line)
-                txth = font.getmask(text).getbbox()[3]
+                hoff, voff, _, txth = font.getmask(text).getbbox()
 
                 if line_no == 0:
-                    y = 0 - (font.font.descent / 2)
+                    x = 0 - hoff
+                    y = 0 - font.font.descent
 
                 drawer.text(xy=(x, y), text=text, fill=tuple(fill), font=font)
 
