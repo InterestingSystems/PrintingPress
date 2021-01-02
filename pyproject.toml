@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "iipp"
-version = "1.1.0"
+version = "1.2.0"
 description = "A tool to place text and images onto a Pillow image object."
 authors = ["hysrx <rxyth@criptext.com>"]
 license = "MIT"
@@ -20,7 +20,7 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "^3.6"
-Pillow = "^8.0.0"
+Pillow = "^8.0.1"
 
 [tool.poetry.dev-dependencies]
 
