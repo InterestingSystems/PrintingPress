@@ -147,7 +147,8 @@ def operate(
                         Internals.print_if(
                             "  Calculating minimum font size... "
                             f"({tries}, {area_data.font_size} -> {size})   ",
-                            end='\r', condition=suppress,
+                            end="\r",
+                            condition=suppress,
                         )
 
                         font = recreate(size)
