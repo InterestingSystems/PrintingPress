@@ -33,7 +33,7 @@ def filter_list_check(area_name: str, filter_name: str, target: list) -> None:
 
 
 class Placements:
-    __parse_map__ = {
+    _parse_map = {
         # Argument Format: [expected (type), required (bool), fallback (*)]
         "image": {
             "type": None,
@@ -53,11 +53,11 @@ class Placements:
             "text": [str, True, None],
             "xy": [list, True, None],
             "wh": [list, True, None],
-            "bg_colour": [list, False, [0, 0, 0]],
-            "bg_opacity": [int, False, 255],
+            "bg_colour": [list, False, None],  # set in post-op
+            "bg_opacity": [int, False, None],  # set in post-op
             "font_colour": [list, False, [255, 255, 255]],
             "font_size": [int, True, None],
-            "font_variant": [str, False, None],
+            "font_variant": [str, False, None],  # set in post-op
             "font_opacity": [int, False, 255],
             "fit": [bool, False, False],
             "beneath": [bool, False, False],
@@ -66,8 +66,8 @@ class Placements:
         },
     }
 
-    __imagearea__ = namedtuple("ImageArea", __parse_map__["image"])
-    __textarea__ = namedtuple("TextArea", __parse_map__["text"])
+    _image_area = namedtuple("ImageArea", _parse_map["image"])
+    _text_area = namedtuple("TextArea", _parse_map["text"])
 
     def parse(places: dict) -> dict:
         assert isinstance(places, dict), "Non-dictionary passed in"
@@ -95,7 +95,7 @@ class Placements:
             )
 
             # Loops through the area-specific mapping and does type/availability checks
-            for elem, payload in Placements.__parse_map__[parsed_area["type"]].items():
+            for elem, payload in Placements._parse_map[parsed_area["type"]].items():
                 if payload is not None:
                     retrieved = Internals.retrieve_key(
                         target=area_data,
@@ -106,7 +106,7 @@ class Placements:
                         extra=f" (area {area_name})",
                     )
 
-                    if "colour" in elem:
+                    if "colour" in elem and retrieved is not None:
                         rgb_list_check(
                             area_name=area_name, elem_name=elem, target=retrieved
                         )
@@ -114,8 +114,8 @@ class Placements:
                     if elem == "rotation" and retrieved > 360:
                         retrieved = 360
 
-                    if "opacity" in elem and retrieved > 255:
-                        retrieved = 255
+                    if "opacity" in elem and retrieved is not None:
+                        retrieved = 255 if retrieved > 255 else retrieved
 
                     if elem == "path" and isinstance(retrieved, str):
                         retrieved = Path(retrieved).absolute()
@@ -140,10 +140,7 @@ class Placements:
 
                 # Retrieve font_variant key value
                 font_variant = Internals.retrieve_key(
-                    target=parsed_area,
-                    key="font_variant",
-                    expected=(str, type(None)),
-                    fallback=None,
+                    target=parsed_area, key="font_variant", expected=(str, type(None))
                 )
 
                 # Attempt to set font_variant
@@ -159,9 +156,34 @@ class Placements:
                 # Add font into parsed_area
                 parsed_area["font"] = font
 
-                parsed_places[area_name] = Placements.__textarea__(
-                    **parsed_area
-                )  # Create namedtuple
+                # Retrieve bg_colour key value
+                bg_colour = Internals.retrieve_key(
+                    target=parsed_area,
+                    key="bg_colour",
+                    expected=(list, type(None)),
+                    fallback=[0, 0, 0],
+                )
+
+                # Retrieve bg_opacity key value
+                bg_opacity = Internals.retrieve_key(
+                    target=parsed_area,
+                    key="bg_opacity",
+                    expected=(int, type(None)),
+                    fallback=255,
+                )
+
+                # Set background opacity to 0 if bg colour is 0, 0, 0
+                if bg_colour is None:
+                    parsed_area["bg_colour"] = [0, 0, 0]
+
+                    if bg_opacity is None:
+                        parsed_area["bg_opacity"] = 0
+
+                elif bg_colour is not None and bg_opacity is None:
+                    parsed_area["bg_opacity"] = 255
+
+                # Create namedtuple
+                parsed_places[area_name] = Placements._text_area(**parsed_area)
 
             else:  # Image-specific post-parse operations
                 if isinstance(parsed_area["path"], Image.Image):
@@ -192,8 +214,7 @@ class Placements:
                         target=parsed_area["filter_data"],
                     )
 
-                parsed_places[area_name] = Placements.__imagearea__(
-                    **parsed_area
-                )  # Create namedtuple
+                # Create namedtuple
+                parsed_places[area_name] = Placements._image_area(**parsed_area)
 
         return parsed_places

@@ -33,6 +33,11 @@ PrintingPress requires at minimum Pillow `8.0.0`.
 
 ## Changelog
 
+### 1.2.1
+
+- Updated to Pillow 8.1.0
+- Fixed default miscalculations of bg_* characteristics for text areas
+
 ### 1.2.0
 
 - Major
@@ -46,10 +51,6 @@ PrintingPress requires at minimum Pillow `8.0.0`.
 ### 1.1.0
 
 - Rework rollover method and fix ignored font descent issue
-
-### 1.0.2
-
-- Fix single word text fitting for image type Placement areas
 
 ## Placements
 
