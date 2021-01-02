@@ -107,7 +107,7 @@ def operate(
             subimage = Image.new(
                 mode="RGBA",
                 size=tuple(area_data.wh),
-                color=(area_data.bg_opacity,) + tuple(area_data.bg_colour),
+                color=tuple(area_data.bg_colour) + tuple([area_data.bg_opacity]),
             )
             Internals.print_if("  Creating subimage... DONE", condition=suppress)
 
@@ -192,7 +192,12 @@ def operate(
             # Draw Text
             Internals.print_if("  Drawing text...", end="\r", condition=suppress)
 
-            drawer = ImageDraw.Draw(subimage)
+            text_holder = Image.new(
+                mode="RGBA",
+                size=tuple(area_data.wh),
+            )
+
+            drawer = ImageDraw.Draw(text_holder)
             fill = area_data.font_colour.copy()
             fill.append(area_data.font_opacity)
 
@@ -210,6 +215,8 @@ def operate(
                 drawer.text(xy=(x, y), text=text, fill=tuple(fill), font=font)
 
                 y += txth + font.font.descent
+
+            subimage = Image.alpha_composite(subimage, text_holder)
 
             Internals.print_if("  Drawing text... DONE", condition=suppress)
 
