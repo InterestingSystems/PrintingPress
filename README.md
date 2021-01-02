@@ -33,6 +33,16 @@ PrintingPress requires at minimum Pillow `8.0.0`.
 
 ## Changelog
 
+### 1.2.0
+
+- Major
+  - Fast text fitting _(~900% faster, real world application performance increase slightly differs)_
+  - Text clipping during rollover for one word text
+  - Fix rollover causing clipping for certain texts
+
+- Minor
+  - Fixed `bg_opacity` and `font_opacity` independence
+
 ### 1.1.0
 
 - Rework rollover method and fix ignored font descent issue
@@ -40,14 +50,6 @@ PrintingPress requires at minimum Pillow `8.0.0`.
 ### 1.0.2
 
 - Fix single word text fitting for image type Placement areas
-
-### 1.0.1
-
-- Fix Pillow dependency version
-
-- Fix handling of PIL Image paths for image type Placement areas
-
-- Fix handling of Placement areas named ".meta"
 
 ## Placements
 
