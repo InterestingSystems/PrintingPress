@@ -35,6 +35,7 @@ PrintingPress requires at minimum Pillow `8.0.0`.
 
 ### 1.2.1
 
+- Updated to Pillow 8.1.0
 - Fixed default miscalculations of bg_* characteristics for text areas
 
 ### 1.2.0
