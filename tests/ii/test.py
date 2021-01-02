@@ -1,11 +1,17 @@
-from src import PrintingPress as printingpress
+from src.PrintingPress import printingpress, placements
 from json import load
 from PIL import Image
+from time import time
 
-thumbnail = Image.open('tests/ii/template-text.png')
+thumbnail = Image.open("tests/ii/template-text.png")
 
-with open('tests/ii/placements.json', 'r', encoding='utf-8') as pf:
-    placements = printingpress.Placements.parse(load(pf))
-    print(placements)
+with open("tests/ii/placements.json", "r", encoding="utf-8") as pf:
+    placements = placements.Placements.parse(load(pf))
 
-printingpress.operate(image=thumbnail, placements=placements, suppress=False).save('tests/ii/output.png')
+stime = time()
+
+printingpress.operate(image=thumbnail, placements=placements, suppress=True).save(
+    "tests/ii/output.png"
+)
+
+print(time() - stime)
